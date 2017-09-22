@@ -16,6 +16,26 @@
 using namespace std;
 #define str_size 10
 
+int writen(int socket_fd, char* buf, int N){
+    int num_left=N;
+    int num_written;
+    char* ptr=buf;
+    while(num_left>0){
+        num_written=write(socket_fd,ptr,num_left);
+        if(num_written<=0){
+            if(num_written<0&&errno==EINTR){
+                num_written=0;
+            }
+            else{
+                return -1;
+            }
+        }
+        num_left-=num_written;
+        ptr+=num_written;
+    }
+    return N;
+}
+
 int main(){
     //specify an address for the socket
     struct sockaddr_in server_address;
@@ -23,8 +43,8 @@ int main(){
     server_address.sin_port=htons(12345);
     server_address.sin_addr.s_addr= inet_addr("127.0.0.1");
     
-    char bufSend[str_size];
-    char bufRecv[str_size];
+    char bufSend[str_size+1];
+    char bufRecv[str_size+1];
     
         //create a socket
         int network_socket=socket(AF_INET,SOCK_STREAM,0);
@@ -45,9 +65,10 @@ int main(){
         
         
         // call send() to send data to server;
-        int send_success=send(network_socket, bufSend, sizeof(bufSend), 0);
+        // int send_success=send(network_socket, bufSend, sizeof(bufSend), 0);
+        int write_success=writen(network_socket,bufSend,sizeof(bufSend));
         
-        if(send_success<0){
+        if(write_success<0){
             cout<<"No sending now!"<<endl;
         }
         //call reveive to receive data from server
@@ -56,8 +77,8 @@ int main(){
         cout<<"Echoed message from server: " << bufRecv <<endl;
         
         //reset buffers
-        memset(bufSend,0,str_size);
-        memset(bufRecv,0,str_size);
+        memset(bufSend,0,sizeof(bufSend));
+        memset(bufRecv,0,sizeof(bufRecv));
         
         //close socket
         close(network_socket);

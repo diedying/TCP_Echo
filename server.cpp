@@ -21,8 +21,8 @@ using namespace std;
 //child process
 void doprocess(int socket){
     int len;
-    char str[str_size];
-    memset(str, 0, str_size);
+    char str[str_size+1];
+    memset(str, 0, sizeof(str));
     
     //cout << "One client has connected to server." << endl;
     
